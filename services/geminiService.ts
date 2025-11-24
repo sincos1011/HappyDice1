@@ -2,11 +2,27 @@ import { GoogleGenAI } from "@google/genai";
 
 const AI_MODEL = "gemini-2.5-flash";
 
+// Fallback phrases when offline
+const OFFLINE_PHRASES = [
+  "No internet? I'll cheer for you anyway! Yay! 🎉",
+  "Offline mode: You are doing great! ✨",
+  "The magic clouds are resting, but the dice still roll! 🎲",
+  "WiFi is taking a nap, but good luck is awake! 💤",
+  "Beep boop! Offline high-five! ✋",
+  "Rolling in analog mode... still cute! 🌸"
+];
+
 export const generateRollNarrative = async (
   values: number[], 
   sum: number,
   theme: string = "Cute & Whimsical"
 ): Promise<string> => {
+  // 1. Check Offline Status
+  if (!navigator.onLine) {
+    const randomPhrase = OFFLINE_PHRASES[Math.floor(Math.random() * OFFLINE_PHRASES.length)];
+    return `${randomPhrase} (Offline)`;
+  }
+
   try {
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
@@ -37,6 +53,8 @@ export const generateRollNarrative = async (
     return response.text?.trim() || "Poof! Magic failed!";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "The magic clouds are blocking the signal... ☁️";
+    // Return offline phrase if API fails
+    const randomPhrase = OFFLINE_PHRASES[Math.floor(Math.random() * OFFLINE_PHRASES.length)];
+    return `${randomPhrase} (Connection Error)`;
   }
 };

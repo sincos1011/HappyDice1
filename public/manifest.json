@@ -1,0 +1,22 @@
+{
+  "name": "Happy Dice AI",
+  "short_name": "HappyDice",
+  "description": "A cute AI-powered dice rolling app",
+  "theme_color": "#f0f4f8",
+  "background_color": "#f0f4f8",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": ".",
+  "icons": [
+    {
+      "src": "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f3b2.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f3b2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

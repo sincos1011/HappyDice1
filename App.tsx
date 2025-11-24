@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Sparkles, Volume2, VolumeX, Star, Dices, RotateCw, History, Smartphone, Check } from 'lucide-react';
+import { Sparkles, Volume2, VolumeX, Star, Dices, RotateCw, History, Smartphone, Check, WifiOff, Share, PlusSquare } from 'lucide-react';
 import Die from './components/Die';
 import { DieValue, RollResult } from './types';
 import { generateRollNarrative } from './services/geminiService';
@@ -18,8 +18,38 @@ const App: React.FC = () => {
   const [shakeEnabled, setShakeEnabled] = useState<boolean>(false);
   const lastShakeRef = useRef<number>(0);
 
+  // Network State
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  // iOS Install Prompt State
+  const [showIOSPrompt, setShowIOSPrompt] = useState<boolean>(false);
+
   // Animation duration in ms
   const ROLL_DURATION = 800;
+
+  // Handle Network Status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Check for iOS and show install prompt
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    // Check if running in standalone mode (already installed)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    
+    if (isIOS && !isStandalone) {
+      // Show prompt after a small delay
+      const timer = setTimeout(() => setShowIOSPrompt(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleRoll = useCallback(async () => {
     if (isRolling) return;
@@ -169,7 +199,15 @@ const App: React.FC = () => {
           </h1>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+            {/* Offline Indicator */}
+            {!isOnline && (
+              <div className="bg-red-100 text-red-500 px-2 py-1.5 rounded-full shadow-sm flex items-center gap-1 border border-red-200">
+                <WifiOff className="w-3 h-3" />
+                <span className="text-[10px] font-bold uppercase">Offline</span>
+              </div>
+            )}
+
             {!shakeEnabled && (
                <button 
                  onClick={requestShakePermission}
@@ -285,6 +323,35 @@ const App: React.FC = () => {
         </div>
 
       </main>
+
+      {/* iOS Install Prompt Overlay */}
+      {showIOSPrompt && (
+        <div className="absolute bottom-4 left-4 right-4 z-50 animate-bounce-slight">
+           <div className="bg-pop-text text-white p-4 rounded-2xl shadow-2xl relative">
+             <button 
+               onClick={() => setShowIOSPrompt(false)}
+               className="absolute top-2 right-2 opacity-50 hover:opacity-100"
+             >
+               ×
+             </button>
+             <div className="flex flex-col gap-2 text-sm">
+                <p className="font-bold">Install App to play offline!</p>
+                <div className="flex items-center gap-2">
+                  <span>1. Tap</span> 
+                  <Share className="w-4 h-4 text-blue-300" />
+                  <span>Share</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>2. Tap</span>
+                  <PlusSquare className="w-4 h-4 text-gray-300" />
+                  <span>Add to Home Screen</span>
+                </div>
+             </div>
+             {/* Little arrow pointing down */}
+             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-pop-text rotate-45"></div>
+           </div>
+        </div>
+      )}
 
        {/* History Drawer - Hidden on small mobile screens if too crowded, or collapsible */}
       <section className="w-full max-w-3xl px-6 pb-6 z-10 shrink-0 hidden md:block">
